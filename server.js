@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const url = require('url');
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 const CACHE_FILE = 'var/tradeup_cache.json';
 
 function fetchJson(targetUrl) {
@@ -188,7 +188,6 @@ const server = http.createServer(async (req, res) => {
     });
 });
 
-server.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
-    console.log(`Open http://localhost:${PORT} in your browser`);
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT}`);
 });
