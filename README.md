@@ -123,7 +123,7 @@ Data is cached in `var/tradeup_cache.json` for 1 hour. To force a refresh, click
 
 ## License
 
-MIT License (or specify your license)
+MIT License.
 
 ## Contributing
 
