@@ -42,7 +42,7 @@ function fetchJson(targetUrl) {
     });
 }
 
-async function fetchAllData(forceRefresh = true) {
+async function fetchAllData(forceRefresh = false) {
     const cacheExists = fs.existsSync(CACHE_FILE);
 
     if (!forceRefresh && cacheExists) {
