@@ -1,0 +1,22 @@
+{
+  "name": "cs2-trade-up-calculator",
+  "version": "1.0.0",
+  "description": "A web-based calculator for Counter-Strike 2 (CS2) trade-up contracts. This tool helps you find profitable trade-up combinations by analyzing market prices, collections, and float values.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seaborg1995/cs2-trade-up-calculator.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/seaborg1995/cs2-trade-up-calculator/issues"
+  },
+  "homepage": "https://github.com/seaborg1995/cs2-trade-up-calculator#readme"
+}
