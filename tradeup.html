@@ -672,11 +672,6 @@
                     let price = priceInfo.price;
                     let quantity = priceInfo.quantity;
 
-                    // Skip low quantity items if option is enabled
-                    if (SKIP_LOW_QUANTITY && quantity <= 1) {
-                        continue;
-                    }
-
                     let itemData = {
                         baseName: baseName,
                         wear: wearName,
