@@ -630,7 +630,7 @@
             let marketHashName = priceItem.market_hash_name;
             let quantity = priceItem.quantity || 0;
             let price = priceItem.min_price / 100;
-            priceMap[marketHashName] = { price: price, quantity: quantity };
+            priceMap[marketHashName] = {price: price, quantity: quantity};
         }
 
         // Build item database from collectionsData
@@ -668,7 +668,7 @@
                     let marketHashName = baseName + ' (' + wearName + ')';
                     let wearRange = WEAR_RANGES[wearName];
 
-                    let priceInfo = priceMap[marketHashName] || { price: 0, quantity: 0 };
+                    let priceInfo = priceMap[marketHashName] || {price: 0, quantity: 0};
                     let price = priceInfo.price;
                     let quantity = priceInfo.quantity;
 
@@ -1056,7 +1056,9 @@
                     if (tradeup && tradeup.possibleOutputs && tradeup.possibleOutputs.length > 0) {
                         // Skip tradeups with low quantity outputs if option is enabled
                         if (SKIP_LOW_QUANTITY) {
-                            let hasLowQuantity = tradeup.possibleOutputs.some(function(o) { return (o.quantity || 0) <= 1; });
+                            let hasLowQuantity = tradeup.possibleOutputs.some(function (o) {
+                                return (o.quantity || 0) <= 1;
+                            });
                             if (hasLowQuantity) {
                                 index++;
                                 continue;
@@ -1068,6 +1070,13 @@
                             }
                             if (tradeup.profitability >= (minProfit || 0)) {
                                 allTradeups.push(tradeup);
+                                // Keep only top 50 by profitability
+                                allTradeups.sort(function (a, b) {
+                                    return b.profitability - a.profitability;
+                                });
+                                if (allTradeups.length > 50) {
+                                    allTradeups.length = 50;
+                                }
                             }
                         }
                     }
@@ -1081,9 +1090,6 @@
                 if (index < toProcess.length && !calculationStopped) {
                     setTimeout(processBatch, 0);
                 } else if (calculationStopped) {
-                    allTradeups.sort(function (a, b) {
-                        return b.profitability - a.profitability;
-                    });
                     if (isCalculating) {
                         isCalculating = false;
                         document.getElementById('stopBtn').disabled = true;
@@ -1093,9 +1099,6 @@
                     }
                     resolve(allTradeups);
                 } else {
-                    allTradeups.sort(function (a, b) {
-                        return b.profitability - a.profitability;
-                    });
                     resolve(allTradeups);
                 }
             }
@@ -1163,7 +1166,6 @@
             let outputs = t.possibleOutputs;
             for (let j = 0; j < outputs.length; j++) {
                 let out = outputs[j];
-                let profitClass2 = out.expectedProfit >= 0 ? 'positive' : 'negative';
                 let outImgUrl = out.skinImage || placeholderImg;
                 let floatDisplay2 = out.preservedFloat ? 'float: ' + parseFloat(out.preservedFloat).toFixed(8) : out.wear;
                 let nameWithWear2 = out.name + ' (' + out.wear + ')';
@@ -1171,7 +1173,7 @@
                 html += '<img src="' + outImgUrl + '" alt="' + out.name + '" onerror="this.src=\'' + placeholderImg + '\'">';
                 html += '<div class="name">' + nameWithWear2 + '</div>';
                 html += '<div class="price">$' + out.price + '</div>';
-                html += '<div class="chance">szansa: ' + out.chance + '%</div>';
+                html += '<div class="chance">chance: ' + out.chance + '%</div>';
                 html += '<div class="wear">' + floatDisplay2 + '</div>';
                 html += '</div>';
             }
