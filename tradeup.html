@@ -977,16 +977,24 @@
         return new Promise(function (resolve) {
             let allTradeups = [];
             let itemsByRarity = {};
+            let collectionsRarity = {};
 
             for (let collectionId in itemsByCollection) {
                 if (BANNED_COLLECTIONS.indexOf(collectionId) >= 0) continue;
-
                 let collectionItems = itemsByCollection[collectionId];
                 for (let i = 0; i < collectionItems.length; i++) {
                     let item = collectionItems[i];
                     let r = item.rarity.order;
                     if (!itemsByRarity[r]) itemsByRarity[r] = [];
                     itemsByRarity[r].push(item);
+
+                    if (!collectionsRarity[collectionId]) {
+                        collectionsRarity[collectionId] = [];
+                    }
+
+                    if (!collectionsRarity[collectionId].includes(r)) {
+                        collectionsRarity[collectionId].push(r);
+                    }
                 }
             }
 
@@ -1009,6 +1017,11 @@
                 let filteredItems = [];
                 for (let i = 0; i < rarityItems.length; i++) {
                     let item = rarityItems[i];
+
+                    if (!collectionsRarity[item.collectionId].includes(r + 1)) {
+                        continue;
+                    }
+
                     if (ALLOWED_WEARS.indexOf(item.wear) >= 0) {
                         if (item.price > 0 && item.price <= MAX_ITEM_PRICE && item.price >= MIN_ITEM_PRICE) {
                             filteredItems.push(item);
