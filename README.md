@@ -11,10 +11,13 @@ A web-based calculator for Counter-Strike 2 (CS2) trade-up contracts. This tool 
 - **Float Cap Support**: Handles skin float ranges from ByMykel's CSGO-API
 - **Extraordinary Items**: Automatically includes knives and gloves from collections
 - **Ban Collections**: Exclude specific collections from calculations
-- **Low Quantity Filter**: Skip items with low market quantity (≤1)
+- **Low Quantity Filter**: Skip items with low market quantity (configurable threshold)
+- **Rarity Color Backgrounds**: Images display with their rarity color as background
+- **Float Cap Display**: Shows float caps (min-max) next to each item's float value
 - **Auto-Calculation**: Automatically re-calculate when settings change
 - **Settings Persistence**: Saves your preferences to localStorage
 - **Export Results**: Download trade-up results as JSON
+- **Responsive Grid Layout**: Items grid displays max 5 items per row with larger text and images
 
 ## Prerequisites
 
@@ -49,9 +52,13 @@ The server will start on `http://localhost:3001`
    - **Wear**: Select allowed wear conditions
    - **Calculation Options**: Set max duplicates, combination limit
    - **Parameters**: Adjust Steam fee, price ranges, min profit
-   - **Skip Low Quantity**: Enable to filter out items with quantity ≤1
+   - **Skip Low Quantity**: Enable to filter out items with quantity ≤ configurable threshold (default: 1)
 4. Click **Calculate Trade-ups** to start the calculation
-5. View results sorted by profitability
+5. View results sorted by profitability with:
+   - Rarity-colored backgrounds on item images
+   - Float values with float caps displayed (e.g., `float: 0.12345678 (0.00-1.00)`)
+   - Larger text and images for better readability
+   - Max 5 items per row in input/output grids
 6. Optionally download results as JSON
 
 ### Settings
@@ -63,7 +70,7 @@ The server will start on `http://localhost:3001`
 - **Min Item Price**: Minimum price for individual items
 - **Max Contract**: Maximum total cost of a trade-up contract
 - **Min Profit**: Minimum profitability percentage to include in results
-- **Skip Low Quantity**: When enabled, filters out items with quantity ≤1
+- **Skip Low Quantity**: When enabled, filters out items with quantity ≤ configurable threshold (default: 1)
 
 ## Data Sources
 
@@ -74,10 +81,11 @@ The server will start on `http://localhost:3001`
 ## File Structure
 
 ```
-cs2-tradeup/
+cs2-trade-up-calculator/
 ├── server.js           # Node.js server handling data fetching and caching
-├── tradeup.html       # Main web interface
-└── README.md
+├── tradeup.html        # Main web interface with all features
+├── package.json        # Node.js dependencies
+├── README.md           # Readme
 ```
 
 ## How It Works
@@ -97,14 +105,6 @@ cs2-tradeup/
    - Displays results with input/output items and statistics
 
 ## Configuration
-
-### Banned Collections
-
-Edit the `BANNED_COLLECTIONS` array in `server.js` to exclude specific collections:
-
-```javascript
-const BANNED_COLLECTIONS = ["collection-set-xpshop-wpn-01"];
-```
 
 ### Extraordinary Items
 

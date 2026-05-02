@@ -267,7 +267,7 @@
 
         .items-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            grid-template-columns: repeat(5, 1fr);
             gap: 10px;
             margin-top: 10px;
         }
@@ -299,16 +299,21 @@
             border: 1px solid #00d9ff;
         }
 
+        .skin-img-wrapper {
+            padding: 5px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+
         .skin-card img {
             width: 100px;
-            height: 70px;
+            height: 90px;
             object-fit: contain;
-            background: #000;
             border-radius: 4px;
         }
 
         .skin-card .name {
-            font-size: 11px;
+            font-size: 16px;
             margin: 5px 0;
             word-break: break-word;
             color: #00d9ff;
@@ -318,20 +323,20 @@
         .skin-card .price {
             font-weight: bold;
             color: #00ff88;
-            font-size: 14px;
+            font-size: 20px;
         }
 
         .skin-card .chance {
-            font-size: 11px;
+            font-size: 14px;
             color: #888;
         }
 
         .skin-card .profit {
-            font-size: 11px;
+            font-size: 14px;
         }
 
         .skin-card .wear {
-            font-size: 10px;
+            font-size: 13px;
             color: #ff6b6b;
             margin-top: 2px;
         }
@@ -394,7 +399,7 @@
             background: #1a4a7a;
         }
 
-        .auto-chip input {
+        .auto-chip input[type="checkbox"] {
             display: none;
         }
 
@@ -469,9 +474,11 @@
             </div>
         </div>
         <div style="margin-top: 10px;">
-            <label class="auto-chip">
+            <label class="auto-chip" style="display: inline-flex; align-items: center; gap: 5px;">
                 <input type="checkbox" id="skipLowQuantity">
-                <span>Skip low quantity items (qty ≤ 1)</span>
+                <span>Skip low quantity items (qty ≤</span>
+                <input type="number" id="lowQuantityThreshold" min="0" max="100" value="1" style="width: 50px; background: #1a4a7a; color: #00d9ff; border: 1px solid #00d9ff; border-radius: 3px; padding: 3px 5px; font-size: 13px;">
+                <span>)</span>
             </label>
         </div>
     </div>
@@ -554,6 +561,7 @@
     let ALLOWED_RARITIES = [1, 2, 3];
 
     let SKIP_LOW_QUANTITY = false;
+    let LOW_QUANTITY_THRESHOLD = 1;
 
     let prices = [];
     let collections = [];
@@ -648,7 +656,8 @@
                 let rarity = {
                     id: rarityId,
                     name: item.rarity ? item.rarity.name : 'Consumer Grade',
-                    order: RARITY_ORDER[rarityId] || 0
+                    order: RARITY_ORDER[rarityId] || 0,
+                    color: item.rarity ? item.rarity.color : '#222'
                 };
                 let skinImage = item.image || null;
 
@@ -796,7 +805,8 @@
                 floatMax: item.floatMax,
                 float: inputFloat,
                 normalizedFloat: parseFloat(normalizedFloat.toFixed(8)),
-                skinImage: item.skinImage || null
+                skinImage: item.skinImage || null,
+                rarity: item.rarity
             });
             total += item.price;
         }
@@ -924,7 +934,8 @@
                 outputValue: parseFloat(outputPriceWithFee.toFixed(2)),
                 expectedProfit: parseFloat(expectedProfit.toFixed(2)),
                 expectedProfitPercent: parseFloat(expectedProfitPercent.toFixed(2)),
-                skinImage: (output.skinImage && output.skinImage.indexOf('community') >= 0) ? output.skinImage : null
+                skinImage: (output.skinImage && output.skinImage.indexOf('community') >= 0) ? output.skinImage : null,
+                rarity: output.rarity
             });
         }
 
@@ -1065,7 +1076,7 @@
                         // Skip tradeups with low quantity outputs if option is enabled
                         if (SKIP_LOW_QUANTITY) {
                             let hasLowQuantity = tradeup.possibleOutputs.some(function (o) {
-                                return (o.quantity || 0) <= 1;
+                                return (o.quantity || 0) <= LOW_QUANTITY_THRESHOLD;
                             });
                             if (hasLowQuantity) {
                                 index++;
@@ -1155,10 +1166,12 @@
             for (let j = 0; j < inputs.length; j++) {
                 let inp = inputs[j];
                 let imgUrl = inp.skinImage || placeholderImg;
-                let floatDisplay = inp.float ? 'float: ' + inp.float.toFixed(8) : inp.wear;
+                let floatDisplay = inp.float ? 'float: ' + inp.float.toFixed(8) + ' (' + inp.floatMin.toFixed(2) + ' - ' + inp.floatMax.toFixed(2) + ')' : inp.wear;
                 let nameWithWear = inp.name + ' (' + inp.wear + ')';
                 html += '<div class="skin-card">';
+                html += '<div class="skin-img-wrapper" style="background-color: ' + (inp.rarity && inp.rarity.color ? inp.rarity.color : '#222') + '">';
                 html += '<img src="' + imgUrl + '" alt="' + inp.name + '" onerror="this.src=\'' + placeholderImg + '\'">';
+                html += '</div>';
                 html += '<div class="name">' + nameWithWear + '</div>';
                 html += '<div class="price">$' + inp.price + '</div>';
                 html += '<div class="wear">' + floatDisplay + '</div>';
@@ -1175,10 +1188,12 @@
             for (let j = 0; j < outputs.length; j++) {
                 let out = outputs[j];
                 let outImgUrl = out.skinImage || placeholderImg;
-                let floatDisplay2 = out.preservedFloat ? 'float: ' + parseFloat(out.preservedFloat).toFixed(8) : out.wear;
+                let floatDisplay2 = out.preservedFloat ? 'float: ' + parseFloat(out.preservedFloat).toFixed(8) + ' (' + out.floatMin.toFixed(2) + ' - ' + out.floatMax.toFixed(2) + ')' : out.wear;
                 let nameWithWear2 = out.name + ' (' + out.wear + ')';
                 html += '<div class="skin-card">';
+                html += '<div class="skin-img-wrapper" style="background-color: ' + (out.rarity && out.rarity.color ? out.rarity.color : '#222') + '">';
                 html += '<img src="' + outImgUrl + '" alt="' + out.name + '" onerror="this.src=\'' + placeholderImg + '\'">';
+                html += '</div>';
                 html += '<div class="name">' + nameWithWear2 + '</div>';
                 html += '<div class="price">$' + out.price + '</div>';
                 html += '<div class="chance">chance: ' + out.chance + '%</div>';
@@ -1281,6 +1296,7 @@
         MAX_CONTRACT_PRICE = parseFloat(document.getElementById('maxContractPrice').value);
         MIN_PROFITABILITY = parseFloat(document.getElementById('minProfitability').value);
         SKIP_LOW_QUANTITY = document.getElementById('skipLowQuantity').checked;
+        LOW_QUANTITY_THRESHOLD = parseInt(document.getElementById('lowQuantityThreshold').value) || 1;
 
         saveSettingsToStorage();
     }
@@ -1297,7 +1313,8 @@
             maxContractPrice: document.getElementById('maxContractPrice').value,
             minProfitability: document.getElementById('minProfitability').value,
             autoCalc: document.getElementById('autoCalc').checked,
-            skipLowQuantity: document.getElementById('skipLowQuantity').checked
+            skipLowQuantity: document.getElementById('skipLowQuantity').checked,
+            lowQuantityThreshold: document.getElementById('lowQuantityThreshold').value
         };
         localStorage.setItem('tradeupSettings', JSON.stringify(settings));
     }
@@ -1342,6 +1359,10 @@
             if (settings.skipLowQuantity !== undefined) {
                 SKIP_LOW_QUANTITY = settings.skipLowQuantity;
                 document.getElementById('skipLowQuantity').checked = settings.skipLowQuantity;
+            }
+            if (settings.lowQuantityThreshold !== undefined) {
+                LOW_QUANTITY_THRESHOLD = parseInt(settings.lowQuantityThreshold);
+                document.getElementById('lowQuantityThreshold').value = settings.lowQuantityThreshold;
             }
         } catch (e) {
             console.error('Failed to load settings:', e);
