@@ -10,11 +10,12 @@ A web-based calculator for Counter-Strike 2 (CS2) trade-up contracts. This tool 
 - **Real-Time Pricing**: Fetches live prices from CSFloat API
 - **Float Cap Support**: Handles skin float ranges from ByMykel's CSGO-API
 - **Extraordinary Items**: Automatically includes knives and gloves from collections
-- **Ban Collections**: Exclude specific collections from calculations
-- **Low Quantity Filter**: Skip items with low market quantity (configurable threshold)
+- **Exclude Collections**: Select which collections to exclude from calculations (multi-select grid)
+- **Low Quantity Filter**: Skip trade-ups where any output item has quantity ≤ configurable threshold (default: 1)
 - **Rarity Color Backgrounds**: Images display with their rarity color as background
 - **Float Cap Display**: Shows float caps (min-max) next to each item's float value
-- **Auto-Calculation**: Automatically re-calculate when settings change
+- **Auto-Calculate**: Automatically calculates trade-ups until at least one match is found
+- **Save Settings**: Dedicated button to save settings without calculating
 - **Settings Persistence**: Saves your preferences to localStorage
 - **Export Results**: Download trade-up results as JSON
 - **Responsive Grid Layout**: Items grid displays max 5 items per row with larger text and images
@@ -46,20 +47,11 @@ The server will start on `http://localhost:3001`
 ### Using the Calculator
 
 1. Open your browser and navigate to `http://localhost:3001`
-2. Click **Refresh Data** to fetch the latest prices and collections
 3. Configure your settings:
-   - **Rarity**: Select which rarities to use as inputs
-   - **Wear**: Select allowed wear conditions
-   - **Calculation Options**: Set max duplicates, combination limit
-   - **Parameters**: Adjust Steam fee, price ranges, min profit
-   - **Skip Low Quantity**: Enable to filter out items with quantity ≤ configurable threshold (default: 1)
-4. Click **Calculate Trade-ups** to start the calculation
-5. View results sorted by profitability with:
-   - Rarity-colored backgrounds on item images
-   - Float values with float caps displayed (e.g., `float: 0.12345678 (0.00-1.00)`)
-   - Larger text and images for better readability
-   - Max 5 items per row in input/output grids
-6. Optionally download results as JSON
+4. Click **Save Settings** to persist your preferences
+5. Click **Calculate Trade-ups** to start the calculation
+6. View results sorted by profitability
+7. Optionally download results as JSON
 
 ### Settings
 
@@ -70,7 +62,8 @@ The server will start on `http://localhost:3001`
 - **Min Item Price**: Minimum price for individual items
 - **Max Contract**: Maximum total cost of a trade-up contract
 - **Min Profit**: Minimum profitability percentage to include in results
-- **Skip Low Quantity**: When enabled, filters out items with quantity ≤ configurable threshold (default: 1)
+- **Skip Low Quantity**: When enabled, filters out trade-ups where any output item has quantity ≤ configurable threshold (default: 1)
+- **Exclude Collections**: Multi-select grid to ban specific collections from calculations (hardcoded bans always apply)
 
 ## Data Sources
 
