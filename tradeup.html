@@ -535,6 +535,121 @@
             color: #eaeaea;
         }
 
+        .collection-popup {
+            position: fixed;
+            background: #16213e;
+            border: 1px solid #00d9ff;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 11px;
+            color: #00d9ff;
+            cursor: pointer;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            transition: opacity 0.2s;
+        }
+
+        .collection-popup:hover {
+            background: #1a4a7a;
+        }
+
+        .collection-items-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .collection-items-modal.show {
+            display: flex;
+        }
+
+        .collection-items-content {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 600px;
+            max-height: 80vh;
+            width: 90%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #collectionItemsList {
+            overflow-y: auto;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .collection-items-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #0f3460;
+            position: sticky;
+            top: 0;
+            background: #16213e;
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(22, 33, 62, 1);
+        }
+
+        .collection-items-header h3 {
+            margin: 0;
+            color: #00d9ff;
+        }
+
+        .collection-items-close {
+            background: none;
+            border: none;
+            color: #eaeaea;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0 5px;
+        }
+
+        .collection-items-close:hover {
+            color: #00d9ff;
+        }
+
+        .collection-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 5px;
+            background: #0f3460;
+        }
+
+        .collection-item img {
+            width: 52px;
+            height: 52px;
+            object-fit: contain;
+        }
+
+        .collection-item-name {
+            flex: 1;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .collection-item-rarity {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 3px;
+        }
+
         #bannedCollections:focus {
             outline: none;
             border-color: #00d9ff;
@@ -574,6 +689,7 @@
     <button class="btn" onclick="refreshData()">Refresh Data</button>
     <button class="btn" onclick="downloadResults()">Download JSON</button>
     <button class="btn" onclick="getSettingsFromUI()">Save Settings</button>
+    <button class="btn" onclick="openCollectionsModal()">Collections</button>
 </div>
 
 <div class="settings-box">
@@ -638,6 +754,22 @@
         <div class="settings-section">
             <h4>Exclude Collections:</h4>
             <div id="bannedCollections" class="collections-grid">
+            </div>
+        </div>
+
+        <div id="collectionPopup" class="collection-popup">See collection items</div>
+
+        <div id="collectionItemsModal" class="collection-items-modal">
+            <div class="collection-items-content">
+                <div class="collection-items-header">
+                    <input type="text" id="collectionSearchInput" placeholder="Search skin or collection..." oninput="onCollectionSearch(this.value)" style="background: #0f3460; color: #eaeaea; border: 1px solid #00d9ff; border-radius: 6px; padding: 6px 10px; font-size: 14px; flex: 1; max-width: 250px;">
+                    <select id="collectionItemsSelect" onchange="onCollectionSelectChange(this.value)" style="background: #0f3460; color: #eaeaea; border: 1px solid #00d9ff; border-radius: 6px; padding: 6px 10px; font-size: 14px; flex: 1; max-width: 400px;">
+                        <option value="">Select collection...</option>
+                    </select>
+                    <button class="collection-items-close" onclick="closeCollectionItemsModal()">&times;</button>
+                </div>
+                <div id="collectionCratesInfo" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; padding: 10px; background: #0f3460; border-radius: 6px;"></div>
+                <div id="collectionItemsList"></div>
             </div>
         </div>
         <div class="settings-section">
@@ -1385,6 +1517,10 @@
         return 'https://steamcdn-a.akamaihd.net/steam/apps/252490/capsule_231x87.jpg';
     }
 
+    let popupTimeout = null;
+    let currentCollectionId = null;
+    let hidePopupTimeout = null;
+
     function populateBannedCollections() {
         let container = document.getElementById('bannedCollections');
         container.innerHTML = '';
@@ -1394,6 +1530,7 @@
             if (BANNED_COLLECTIONS.indexOf(col.id) >= 0) continue;
             let label = document.createElement('label');
             label.style.cssText = 'display: flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; transition: background 0.2s;';
+            label.dataset.collectionId = col.id;
             let checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.value = col.id;
@@ -1404,8 +1541,31 @@
             label.appendChild(checkbox);
             label.appendChild(document.createTextNode(col.name || col.id));
             // Hover effect
-            label.onmouseenter = function() { this.style.background = '#1a4a7a'; };
-            label.onmouseleave = function() { this.style.background = 'transparent'; };
+            label.onmouseenter = function() {
+                this.style.background = '#1a4a7a';
+                let rect = this.getBoundingClientRect();
+                let popup = document.getElementById('collectionPopup');
+                currentCollectionId = col.id;
+                // Clear any pending hide
+                if (hidePopupTimeout) clearTimeout(hidePopupTimeout);
+                if (popupTimeout) clearTimeout(popupTimeout);
+                popupTimeout = setTimeout(function() {
+                    popup.style.display = 'block';
+                    popup.style.top = rect.top + 'px';
+                    popup.style.left = (rect.right + 5) + 'px';
+                }, 500);
+            };
+            label.onmouseleave = function(e) {
+                this.style.background = 'transparent';
+                // Check if mouse is moving towards popup (to the right)
+                let popup = document.getElementById('collectionPopup');
+                let popupRect = popup.getBoundingClientRect();
+                // Don't hide if mouse is over or near popup
+                if (hidePopupTimeout) clearTimeout(hidePopupTimeout);
+                hidePopupTimeout = setTimeout(function() {
+                    popup.style.display = 'none';
+                }, 200);
+            };
             // Toggle excluded class
             checkbox.onchange = function() {
                 if (this.checked) {
@@ -1417,6 +1577,167 @@
             container.appendChild(label);
         }
     }
+
+    // Handle popup hover
+    let popup = document.getElementById('collectionPopup');
+    popup.onmouseenter = function() {
+        // Cancel any pending hide when mouse enters popup
+        if (hidePopupTimeout) clearTimeout(hidePopupTimeout);
+        if (popupTimeout) clearTimeout(popupTimeout);
+    };
+    popup.onmouseleave = function(e) {
+        // Check if mouse is going back to a label
+        this.style.display = 'none';
+    };
+    popup.onclick = function() {
+        this.style.display = 'none';
+        if (currentCollectionId) {
+            showCollectionItems(currentCollectionId);
+        }
+    };
+
+    function populateCollectionSelect(filter) {
+        let select = document.getElementById('collectionItemsSelect');
+        select.innerHTML = '<option value="">Select collection...</option>';
+        let filterLower = filter ? filter.toLowerCase() : '';
+        for (let i = 0; i < collections.length; i++) {
+            let c = collections[i];
+            let collectionNameMatch = c.name && c.name.toLowerCase().indexOf(filterLower) !== -1;
+            let itemMatch = false;
+            if (filterLower && c.contains) {
+                for (let j = 0; j < c.contains.length; j++) {
+                    if (c.contains[j].name && c.contains[j].name.toLowerCase().indexOf(filterLower) !== -1) {
+                        itemMatch = true;
+                        break;
+                    }
+                }
+            }
+            if (filter && !collectionNameMatch && !itemMatch) {
+                continue;
+            }
+            let opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.name || c.id;
+            select.appendChild(opt);
+        }
+    }
+
+    function onCollectionSearch(query) {
+        populateCollectionSelect(query);
+        let select = document.getElementById('collectionItemsSelect');
+        if (select.options.length > 1) {
+            select.value = select.options[1].value;
+            showCollectionItems(select.value);
+        } else {
+            document.getElementById('collectionItemsList').innerHTML = '<p style="color: #666; text-align: center;">No collections found</p>';
+            document.getElementById('collectionCratesInfo').style.display = 'none';
+        }
+    }
+
+    function showCollectionItems(collectionId) {
+        if (!collectionId) return;
+        let collection = collections.find(function(c) { return c.id === collectionId; });
+        if (!collection) return;
+        let select = document.getElementById('collectionItemsSelect');
+        if (select.options.length <= 1) {
+            populateCollectionSelect();
+        }
+        select.value = collectionId;
+
+        let cratesInfo = document.getElementById('collectionCratesInfo');
+        cratesInfo.innerHTML = '';
+        if (collection.crates && collection.crates.length > 0) {
+            for (let i = 0; i < collection.crates.length; i++) {
+                let crate = collection.crates[i];
+                let div = document.createElement('div');
+                div.style.display = 'flex';
+                div.style.alignItems = 'center';
+                div.style.gap = '8px';
+                let img = document.createElement('img');
+                img.src = crate.image || 'https://steamcdn-a.akamaihd.net/steam/apps/252490/capsule_231x87.jpg';
+                img.alt = crate.name;
+                img.style.width = '40px';
+                img.style.height = '40px';
+                img.style.objectFit = 'contain';
+                let name = document.createElement('span');
+                name.style.fontSize = '13px';
+                name.style.color = '#eaeaea';
+                name.textContent = crate.name;
+                div.appendChild(img);
+                div.appendChild(name);
+                cratesInfo.appendChild(div);
+            }
+            cratesInfo.style.display = 'flex';
+        } else {
+            cratesInfo.style.display = 'none';
+        }
+
+        let list = document.getElementById('collectionItemsList');
+        list.innerHTML = '';
+        if (collection.contains && collection.contains.length > 0) {
+            for (let i = 0; i < collection.contains.length; i++) {
+                let item = collection.contains[i];
+                let div = document.createElement('div');
+                div.className = 'collection-item';
+                let img = document.createElement('img');
+                img.src = item.image || 'https://steamcdn-a.akamaihd.net/steam/apps/252490/capsule_231x87.jpg';
+                img.alt = item.name;
+                let name = document.createElement('div');
+                name.className = 'collection-item-name';
+                name.textContent = item.name;
+                div.appendChild(img);
+                div.appendChild(name);
+                if (item.rarity && item.rarity.color) {
+                    div.style.background = item.rarity.color + '33';
+                    let rarity = document.createElement('span');
+                    rarity.className = 'collection-item-rarity';
+                    rarity.textContent = item.rarity.name;
+                    rarity.style.background = item.rarity.color + '66';
+                    rarity.style.color = item.rarity.color;
+                    div.appendChild(rarity);
+                }
+                list.appendChild(div);
+            }
+        } else {
+            list.innerHTML = '<p style="color: #666; text-align: center;">No items in this collection</p>';
+        }
+        document.getElementById('collectionItemsModal').classList.add('show');
+    }
+
+    function onCollectionSelectChange(collectionId) {
+        if (collectionId) {
+            showCollectionItems(collectionId);
+        }
+    }
+
+    function openCollectionsModal() {
+        populateCollectionSelect();
+        let select = document.getElementById('collectionItemsSelect');
+        if (select.options.length > 1) {
+            select.value = select.options[1].value;
+            showCollectionItems(select.value);
+        }
+        document.getElementById('collectionSearchInput').value = '';
+        document.getElementById('collectionItemsModal').classList.add('show');
+    }
+
+    function closeCollectionItemsModal() {
+        document.getElementById('collectionItemsModal').classList.remove('show');
+    }
+
+    // Close modal on click outside
+    document.getElementById('collectionItemsModal').onclick = function(e) {
+        if (e.target === this) {
+            closeCollectionItemsModal();
+        }
+    };
+
+    // Hide popup on scroll
+    document.getElementById('bannedCollections').addEventListener('scroll', function() {
+        let popup = document.getElementById('collectionPopup');
+        popup.style.display = 'none';
+        if (popupTimeout) clearTimeout(popupTimeout);
+    });
 
     function loadData() {
         return new Promise(function (resolve, reject) {

@@ -19,6 +19,10 @@ A web-based calculator for Counter-Strike 2 (CS2) trade-up contracts. This tool 
 - **Settings Persistence**: Saves your preferences to localStorage
 - **Export Results**: Download trade-up results as JSON
 - **Responsive Grid Layout**: Items grid displays max 5 items per row with larger text and images
+- **Collection Browser**: Browse all collections with item lists, crate info, and rarity-colored backgrounds
+- **Collection Search**: Search collections and items by name with real-time filtering
+- **Quick Collection Switching**: Dropdown selector in modal to switch between collections without closing
+- **Crate Information**: Displays crate images and names for each collection
 
 ## Prerequisites
 
