@@ -79,10 +79,7 @@ async function fetchAllData(forceRefresh = false) {
         }
 
         if (skin.min_float !== undefined || skin.max_float !== undefined) {
-            floatCap[skin.paint_index] = {
-                wear_remap_min: skin.min_float || 0,
-                wear_remap_max: skin.max_float || 1
-            };
+            floatCap[skin.paint_index] = [skin.min_float, skin.max_float];
         }
     }
     console.log(`Found ${Object.keys(floatCap).length} float caps`);
@@ -91,8 +88,21 @@ async function fetchAllData(forceRefresh = false) {
     // For each collection, check if any extraordinary skin has matching crate
     // If yes, add that extraordinary skin to collection.contains
     for (const collection of collections) {
-        if (!collection.crates || collection.crates.length === 0) continue;
         if (!collection.contains) collection.contains = [];
+
+        for (const item of collection.contains) {
+            if (item.rarity.id.includes('_weapon')) {
+                item.min_float = 0;
+                item.max_float = 1;
+            }
+
+            if (item.paint_index !== undefined && floatCap[item.paint_index]) {
+                item.min_float = floatCap[item.paint_index][0];
+                item.max_float = floatCap[item.paint_index][1];
+            }
+        }
+
+        if (!collection.crates || collection.crates.length === 0) continue;
 
         // Get all crate IDs for this collection
         const collectionCrateIds = collection.crates.map(c => c.id);
@@ -122,10 +132,9 @@ async function fetchAllData(forceRefresh = false) {
                             id: 'rarity_extraordinary',
                             name: extSkin.rarity.name,
                         },
-                        weapon: extSkin.weapon,
                         image: extSkin.image,
-                        min_float: extSkin.min_float,
-                        max_float: extSkin.max_float,
+                        min_float: extSkin.min_float ?? 0,
+                        max_float: extSkin.max_float ?? 1,
                         paint_index: extSkin.paint_index
                     };
                     collection.contains.push(skinToAdd);
@@ -134,7 +143,7 @@ async function fetchAllData(forceRefresh = false) {
         }
     }
 
-    const data = {prices, collections, floatCap, fetched_at: new Date().toISOString()};
+    const data = {prices, collections, fetched_at: new Date().toISOString()};
 
     if (!fs.existsSync('var')) fs.mkdirSync('var');
     fs.writeFileSync(CACHE_FILE, JSON.stringify(data));
